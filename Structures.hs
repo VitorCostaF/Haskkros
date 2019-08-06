@@ -41,8 +41,19 @@ setField2TableRow table (part:field) i j = do
     setField2TableCol table part i j 
     setField2TableRow table field (i+1) j
 
+createTableWithField :: Int -> Int -> IO Table 
+createTableWithField rows cols = 
+    do 
+        let field = createButtonField rows cols
+        table <- createTable rows cols
+        setField2Table table field rows cols
+        return table 
+
 setField2Table :: Table -> ButtonField -> Int -> Int -> IO ()
 setField2Table table field rows cols= setField2TableRow table field (halfRow+1) (halfCol+1)
     where 
         halfRow = halfInt rows
         halfCol = halfInt cols
+
+
+
