@@ -4,9 +4,11 @@ import Graphics.UI.Gtk
 
 type ButtonField = [[IO Button]]
 
+data TableField = TableField Table ButtonField
+
 addButton2Table :: Table ->IO Button -> Int -> Int -> Int -> Int -> IO ()
 addButton2Table table button lAtt rAtt tAtt bAtt = 
-    do
+    do 
         aux <- button 
         tableAttachDefaults table aux lAtt rAtt tAtt bAtt
 
@@ -15,11 +17,18 @@ addUnitButton2Table table button row col =
     addButton2Table table button row (row + 1) col (col + 1) 
 
 getButtonFromField :: ButtonField -> Int -> Int -> IO Button
-getButtonFromField field row col = (field !! row) !! col
+getButtonFromField field row col = (field !! (row-1)) !! (col-1)
+
+createNewButton :: String -> IO Button
+createNewButton str = 
+    do 
+        butto <- buttonNewWithLabel "P"
+        onClicked butto (buttonFunction butto)
+        return butto
 
 createButtonField :: Int -> Int -> ButtonField
 createButtonField rows cols =
-    [[buttonNewWithLabel " " | i <-[1..rows]] | j <- [1..cols]]
+    [[createNewButton "P" | i <-[1..rows]] | j <- [1..cols]]
 
 halfInt :: Int -> Int
 halfInt n = n `div` 2 + 1 
@@ -41,13 +50,6 @@ setField2TableRow table (part:field) i j = do
     setField2TableCol table part i j 
     setField2TableRow table field (i+1) j
 
-createTableWithField :: Int -> Int -> IO Table 
-createTableWithField rows cols = 
-    do 
-        let field = createButtonField rows cols
-        table <- createTable rows cols
-        setField2Table table field rows cols
-        return table 
 
 setField2Table :: Table -> ButtonField -> Int -> Int -> IO ()
 setField2Table table field rows cols= setField2TableRow table field (halfRow+1) (halfCol+1)
@@ -55,5 +57,50 @@ setField2Table table field rows cols= setField2TableRow table field (halfRow+1) 
         halfRow = halfInt rows
         halfCol = halfInt cols
 
+createTableWithField :: Int -> Int -> IO TableField 
+createTableWithField rows cols = 
+    do 
+        let field = createButtonField rows cols
+        table <- createTable rows cols
+        setField2Table table field rows cols
+        --enableFieldFunction field
+        return (TableField table field)
 
+getButtonFromTable :: TableField -> Int -> Int -> IO Button
+getButtonFromTable (TableField table field) row col = 
+    getButtonFromField field row col
 
+buttonFunction :: Button -> IO ()
+buttonFunction button = 
+    do
+        txt <- buttonGetLabel button
+        let newTxt = case txt of
+                        " " -> "P"
+                        "P" -> "X"
+                        "X" -> " "
+        buttonSetLabel button newTxt
+
+{-enableFieldFunction :: ButtonField -> [[IO (ConnectId Button)]]
+enableFieldFunction buttonField = 
+    [[ enableButtonFunction button | button <- buttons] | buttons <- buttonField]
+-}
+{-
+enableFieldFunction :: ButtonField -> IO (ConnectId Button)
+enableFieldFunction [field] = enableRowFunction field
+enableFieldFunction (field:buttonField) = 
+    do 
+        enableRowFunction field
+        enableFieldFunction buttonField
+
+enableRowFunction :: [Button] -> IO (ConnectId Button)
+enableRowFunction [button] = enableButtonFunction button
+enableRowFunction (button:rowButtons) = 
+    do 
+        enableButtonFunction button
+        enableRowFunction rowButtons
+
+enableButtonFunction :: Button -> IO (ConnectId Button)
+enableButtonFunction button = 
+    do 
+        pure onClicked <*> buttonAux <*> (buttonFunction buttonAux)
+-}

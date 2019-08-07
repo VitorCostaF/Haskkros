@@ -30,8 +30,10 @@ main = do
     setWindowProps "Step One" window
 
     --table <- createTable 5 5 
-    table <- createTableWithField 5 5
+    TableField table field <- createTableWithField 5 5
     containerAdd window table
+
+    button  <- getButtonFromTable (TableField table field) 5 5
 
     --let halfRow = 5 `div` 2 + 1 
     --let halfCol = 5 `div` 2 + 1
