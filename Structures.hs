@@ -22,9 +22,10 @@ getButtonFromField field row col = (field !! (row-1)) !! (col-1)
 createNewButton :: String -> IO Button
 createNewButton str = 
     do 
-        butto <- buttonNewWithLabel "P"
-        onClicked butto (buttonFunction butto)
-        return butto
+        button <- buttonNewWithLabel " "
+        widgetModifyBg button StateNormal (Color 65535 65535 65535)
+        onClicked button (buttonFunction button)
+        return button
 
 createButtonField :: Int -> Int -> ButtonField
 createButtonField rows cols =
@@ -75,32 +76,8 @@ buttonFunction button =
     do
         txt <- buttonGetLabel button
         let newTxt = case txt of
-                        " " -> "P"
-                        "P" -> "X"
+                        " " -> "  "
+                        "  " -> "X"
                         "X" -> " "
         buttonSetLabel button newTxt
-
-{-enableFieldFunction :: ButtonField -> [[IO (ConnectId Button)]]
-enableFieldFunction buttonField = 
-    [[ enableButtonFunction button | button <- buttons] | buttons <- buttonField]
--}
-{-
-enableFieldFunction :: ButtonField -> IO (ConnectId Button)
-enableFieldFunction [field] = enableRowFunction field
-enableFieldFunction (field:buttonField) = 
-    do 
-        enableRowFunction field
-        enableFieldFunction buttonField
-
-enableRowFunction :: [Button] -> IO (ConnectId Button)
-enableRowFunction [button] = enableButtonFunction button
-enableRowFunction (button:rowButtons) = 
-    do 
-        enableButtonFunction button
-        enableRowFunction rowButtons
-
-enableButtonFunction :: Button -> IO (ConnectId Button)
-enableButtonFunction button = 
-    do 
-        pure onClicked <*> buttonAux <*> (buttonFunction buttonAux)
--}
+        
