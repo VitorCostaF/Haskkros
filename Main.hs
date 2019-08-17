@@ -16,7 +16,7 @@ main = do
     setWindowProps "Step One" window
 
     --table <- createTable 5 5 
-    TableField table field <- createTableWithField 5 5
+    (FullTable table field infoRows infoCols solution) <- createFullTable "Level1"
     containerAdd window table
 
     button  <- getButtonFromTable (TableField table field) 5 5
