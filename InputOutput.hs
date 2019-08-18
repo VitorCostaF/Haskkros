@@ -10,29 +10,21 @@ stringToInt str = stringToInt' str (length str - 1)
         stringToInt' [] _ = 0
         stringToInt' (c:str) tam = ((digitToInt c)*(10^tam)) + (stringToInt' str (tam-1))
 
-dropWhileMore1 :: Char -> String -> String
-dropWhileMore1 _ [] = []
-dropWhileMore1 char string = drop 1 (dropWhile ( /= char) string)
+strToInt :: String -> Int
+strToInt str = read str :: Int
 
 splitLines :: Char -> String -> [String]
 splitLines _ [] = []
-splitLines char string = (takeWhile (/=char) string) : (splitLines char (dropWhileMore1 char string))
-
-
---removeSeparator :: Char -> String -> String
---removeSeparator _ [] = []
---removeSeparator separator string = 
---    (takeWhile (/= separator) string) ++ (removeSeparator separator (dropWhileMore1 separator string))
-    
-    
---removeSeparatorEx :: Char -> [String] -> [String]
---removeSeparatorEx _ [] = []
---removeSeparatorEx separator strings = [removeSeparator separator string | string <- strings]
+splitLines char string = line : (splitLines char (drop ( (length line) + 1) string))
+    where 
+        line = takeWhile (/=char) string
 
 splitNumbers :: Char -> String -> [Int]
 splitNumbers _ [] = []
 splitNumbers separator string =  
-    (stringToInt (takeWhile (/= separator) string)) : (splitNumbers separator (dropWhileMore1 separator string))
+    (strToInt number) : (splitNumbers separator (drop (length number + 1) string))
+    where 
+        number = takeWhile (/= separator) string
 
 splitNumbersEx :: Char -> [String] -> [[Int]]
 splitNumbersEx separator strings = [splitNumbers separator string | string <- strings]
@@ -44,7 +36,6 @@ processeFile content = splitNumbersEx ' ' $ splitLines '\n' content
 readNProcessFile :: FilePath -> IO [[Int]]
 readNProcessFile fileName = 
     do 
-        print(fileName)
         file <- readFile fileName
         let content = processeFile file
         return content

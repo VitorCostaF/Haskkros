@@ -4,10 +4,16 @@ import Graphics.UI.Gtk
 import Data.Char
 import InputOutput
 
-type ButtonField = [[IO Button]]
+import Control.Concurrent
+--import Control.Monad
+--import System.IO
+
+type ButtonField = [[IO RowColButton]]
 type InfoRows = [[IO Label]]
 type InfoCols = [[IO Label]]
 type Solution = [[Int]]
+
+data RowColButton = RowColButton (IO Button) Int Int 
 
 data TableField = TableField Table ButtonField
 
@@ -23,20 +29,27 @@ addUnitComp2Table :: WidgetClass a => Table -> IO a -> Int -> Int -> IO ()
 addUnitComp2Table table widg row col = 
     addComp2Table table widg row (row + 1) col (col + 1) 
 
-getButtonFromField :: ButtonField -> Int -> Int -> IO Button
+getButtonFromField :: ButtonField -> Int -> Int -> IO RowColButton
 getButtonFromField field row col = (field !! (row-1)) !! (col-1)
 
 createNewButton :: String -> IO Button
 createNewButton str = 
     do 
         button <- buttonNewWithLabel str
-        widgetModifyBg button StateNormal (Color 65535 65535 65535)
+        widgetModifyBg button StateNormal (Color 50000 50000 50000)
+        buttonSetFocusOnClick button False
         onClicked button (buttonFunction button)
         return button
 
+createNewRowColButton :: Int -> Int -> String -> IO RowColButton
+createNewRowColButton i j string = 
+    do
+        let button = createNewButton string
+        return (RowColButton button i j)
+
 createButtonField :: Int -> Int -> ButtonField
 createButtonField rows cols =
-    [[createNewButton " " | i <-[1..rows]] | j <- [1..cols]]
+    [[createNewRowColButton i j " " | i <-[1..rows]] | j <- [1..cols]]
 
 halfInt :: Int -> Int
 halfInt n = n `div` 2 + 1 
@@ -45,10 +58,11 @@ createTable :: Int -> Int -> IO Table
 createTable rows cols =
     tableNew (rows + (halfInt rows)) (cols + (halfInt cols)) True
 
-setField2TableCol :: Table -> [IO Button] -> Int -> Int -> IO ()
+setField2TableCol :: Table -> [IO RowColButton] -> Int -> Int -> IO ()
 setField2TableCol _ [] _ _ = return ()
-setField2TableCol table (button:buttons) i j= 
+setField2TableCol table (rowColButton:buttons) i j= 
     do
+        (RowColButton button row col) <- rowColButton
         addUnitComp2Table table button i j
         setField2TableCol table buttons i (j+1)
 
@@ -62,35 +76,30 @@ setField2TableRow table (part:field) i j = do
 setField2Table :: Table -> ButtonField -> Int -> Int -> IO ()
 setField2Table table field rows cols= setField2TableRow table field (halfInt rows) (halfInt cols)
 
-setRow :: Table -> [IO Label] -> Int -> Int -> IO ()
-setRow _ [] _ _ = return ()
-setRow table (lab:labels) row col = 
+        
+setRowCol :: Table -> [IO Label] -> Int -> Int -> Bool -> IO ()
+setRowCol _ [] _ _ _ = return ()
+setRowCol table (lab:labels) row col isRow = 
     do 
         addUnitComp2Table table lab col row  
-        setRow table labels row (col +1)
+        setRowCol table labels newRow newCol isRow
+            where 
+                newRow = row + (fromEnum (not isRow))
+                newCol = col + (fromEnum isRow)
 
 setInfoRow2Table :: Table -> InfoRows -> Int -> Int -> IO ()
 setInfoRow2Table _ [] _ _ = return ()
 setInfoRow2Table table (iRow:infoRows) row col = 
     do 
-        setRow table iRow row (col-(length iRow)) 
+        setRowCol table iRow row (col-(length iRow)) True
         setInfoRow2Table table infoRows (row + 1) col
-
-
---rever com setRow        
-setCol :: Table -> [IO Label] -> Int -> Int -> IO ()
-setCol _ [] _ _ = return ()
-setCol table (lab:labels) row col = 
-    do 
-        addUnitComp2Table table lab col row  
-        setCol table labels (row + 1) col
 
 --rever con setInfoCol2Table
 setInfoCol2Table :: Table -> InfoCols -> Int -> Int -> IO ()
 setInfoCol2Table _ [] _ _ = return ()
 setInfoCol2Table table (iCol:infoCols) row col = 
     do 
-        setCol table iCol (row-(length iCol)) col
+        setRowCol table iCol (row-(length iCol)) col False
         setInfoCol2Table table infoCols row (col + 1)
 
 setInfos2Table :: Table -> InfoRows -> InfoCols -> Int -> Int -> IO ()
@@ -111,6 +120,7 @@ createFullTable phase =
         let cols = length (solution !! 0)
         let field = createButtonField rows cols
         let infoRows = createInfoList rowsRead
+        print(length (infoRows!!0) )
         let infoCols = createInfoList colsRead
         --let solution = createSolution rows cols
         table <- createTable rows cols
@@ -125,12 +135,12 @@ createInfoList matrix = map labelList matrix
 labelList :: [Int] -> [IO Label]
 labelList list = map (\s -> labelNew (Just (show s))) list
 
-getButtonFromTable :: TableField -> Int -> Int -> IO Button
+getButtonFromTable :: TableField -> Int -> Int -> IO RowColButton
 getButtonFromTable (TableField table field) row col = 
     getButtonFromField field row col
 
-buttonFunction :: Button -> IO ()
-buttonFunction button = 
+buttonFunction2 :: Button -> IO ()
+buttonFunction2 button = 
     do
         txt <- buttonGetLabel button
         let newTxt = case txt of
@@ -139,3 +149,13 @@ buttonFunction button =
                         "X" -> " "
         buttonSetLabel button newTxt
         
+buttonFunction :: Button -> IO ()
+buttonFunction button = 
+    do
+        txt <- buttonGetLabel button
+        newTxt <-   if txt == " " 
+                    then (do widgetModifyBg button StateNormal (Color 0 0 0); return "  ") 
+                    else if txt == "  " 
+                        then (do widgetModifyBg button StateNormal (Color 65535 65535 65535); return "X")
+                        else (do widgetModifyBg button StateNormal (Color 50000 50000 50000); return " ")
+        buttonSetLabel button newTxt
