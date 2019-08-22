@@ -1,7 +1,9 @@
 module Main where 
 
 import Graphics.UI.Gtk
-import Structures
+
+import Structures 
+import Defines
 
 setWindowProps :: String -> Window -> IO ()
 setWindowProps title window = 
@@ -15,18 +17,10 @@ main = do
     window <- windowNew
     setWindowProps "Step One" window
 
-    --table <- createTable 5 5 
-    (FullTable table field infoRows infoCols solution) <- createFullTable "Level1"
+    (FullTable table field infoRows infoCols solution correctness) <- createFullTable "Level1"
     containerAdd window table
 
-    button  <- getButtonFromTable (TableField table field) 5 5
 
-    --let halfRow = 5 `div` 2 + 1 
-    --let halfCol = 5 `div` 2 + 1
-    --let field = createButtonField 5 5
-
-    --setField2Table table field 5 5
-    
     onDestroy window mainQuit
     widgetShowAll window
     mainGUI

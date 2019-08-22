@@ -1,55 +1,47 @@
 module Structures where
 
 import Graphics.UI.Gtk
-import Data.Char
-import InputOutput
 
+import Data.Char
 import Control.Concurrent
---import Control.Monad
+import Control.Monad
 --import System.IO
 
-type ButtonField = [[IO RowColButton]]
-type InfoRows = [[IO Label]]
-type InfoCols = [[IO Label]]
-type Solution = [[Int]]
+import InputOutput
+import CheckFunctions
+import Defines
 
-data RowColButton = RowColButton (IO Button) Int Int 
-
-data TableField = TableField Table ButtonField
-
-data FullTable = FullTable Table ButtonField InfoRows InfoCols Solution
-
-addComp2Table :: WidgetClass a => Table ->IO a -> Int -> Int -> Int -> Int -> IO ()
+addComp2Table :: WidgetClass a => Table -> a -> Int -> Int -> Int -> Int -> IO ()
 addComp2Table table widg lAtt rAtt tAtt bAtt = 
     do 
-        aux <- widg 
-        tableAttachDefaults table aux lAtt rAtt tAtt bAtt
+        tableAttachDefaults table widg lAtt rAtt tAtt bAtt
 
-addUnitComp2Table :: WidgetClass a => Table -> IO a -> Int -> Int -> IO ()
+addUnitComp2Table :: WidgetClass a => Table -> a -> Int -> Int -> IO ()
 addUnitComp2Table table widg row col = 
     addComp2Table table widg row (row + 1) col (col + 1) 
 
 getButtonFromField :: ButtonField -> Int -> Int -> IO RowColButton
 getButtonFromField field row col = (field !! (row-1)) !! (col-1)
 
-createNewButton :: String -> IO Button
-createNewButton str = 
-    do 
-        button <- buttonNewWithLabel str
-        widgetModifyBg button StateNormal (Color 50000 50000 50000)
-        buttonSetFocusOnClick button False
-        onClicked button (buttonFunction button)
-        return button
+--createNewButton :: String -> IO Button
+--createNewButton str = 
+--    do 
+--        button <- buttonNewWithLabel str
+--        widgetModifyBg button StateNormal (Color 50000 50000 50000)
+--        return button
 
-createNewRowColButton :: Int -> Int -> String -> IO RowColButton
-createNewRowColButton i j string = 
+createNewRowColButton :: Int -> Int -> String -> Correctness -> Solution -> IO RowColButton
+createNewRowColButton i j string correctness solution = 
     do
-        let button = createNewButton string
-        return (RowColButton button i j)
+        button <- buttonNewWithLabel string
+        widgetModifyBg button StateNormal (Color 50000 50000 50000)
+        let rowColButton = (RowColButton button i j)
+        onClicked button (buttonFunction rowColButton correctness solution)
+        return (rowColButton)
 
-createButtonField :: Int -> Int -> ButtonField
-createButtonField rows cols =
-    [[createNewRowColButton i j " " | i <-[1..rows]] | j <- [1..cols]]
+createButtonField :: Int -> Int -> Correctness -> Solution -> ButtonField
+createButtonField rows cols correctness solution =
+    [[createNewRowColButton i j " " correctness solution | i <-[0..(rows-1)]] | j <- [0..(cols-1)]]
 
 halfInt :: Int -> Int
 halfInt n = n `div` 2 + 1 
@@ -72,15 +64,16 @@ setField2TableRow table (part:field) i j = do
     setField2TableCol table part i j 
     setField2TableRow table field (i+1) j
 
-
+--retirar
 setField2Table :: Table -> ButtonField -> Int -> Int -> IO ()
 setField2Table table field rows cols= setField2TableRow table field (halfInt rows) (halfInt cols)
 
         
 setRowCol :: Table -> [IO Label] -> Int -> Int -> Bool -> IO ()
 setRowCol _ [] _ _ _ = return ()
-setRowCol table (lab:labels) row col isRow = 
+setRowCol table (labIO:labels) row col isRow = 
     do 
+        lab <- labIO
         addUnitComp2Table table lab col row  
         setRowCol table labels newRow newCol isRow
             where 
@@ -108,6 +101,17 @@ setInfos2Table table infoRows infoCols rowMax colMax =
         setInfoRow2Table table infoRows rowMax colMax 
         setInfoCol2Table table infoCols rowMax colMax 
 
+createCorrectnees :: Int -> Int -> IO Correctness
+createCorrectnees nRows nCols =
+    do
+        let matrix = [ [newMVar False | i <- [0..(nRows-1)] ] | j <- [0..(nCols - 1)] ]  
+        sGame <- newEmptyMVar
+        putMVar sGame False
+        mvarMatrix <- newMVar matrix
+        return ((Correctness mvarMatrix sGame))
+
+        
+
 createFullTable :: FilePath -> IO FullTable 
 createFullTable phase = 
     do 
@@ -116,24 +120,23 @@ createFullTable phase =
         solution <- readNProcessFile (path ++ "Solution" ++ ext )
         rowsRead <- readNProcessFile (path ++ "Rows" ++ ext)
         colsRead <- readNProcessFile (path ++ "Cols" ++ ext)
+        correctness <- createCorrectnees 5 5
         let rows = length solution
         let cols = length (solution !! 0)
-        let field = createButtonField rows cols
+        let field = createButtonField rows cols correctness solution 
         let infoRows = createInfoList rowsRead
-        print(length (infoRows!!0) )
         let infoCols = createInfoList colsRead
-        --let solution = createSolution rows cols
         table <- createTable rows cols
         setField2Table table field rows cols
         setInfos2Table table infoRows infoCols (halfInt rows) (halfInt cols)
         --enableFieldFunction field
-        return (FullTable table field infoRows infoCols solution)
+        return (FullTable table field infoRows infoCols solution correctness)
 
 createInfoList :: [[Int]] -> [[IO Label]]
 createInfoList matrix = map labelList matrix
-
-labelList :: [Int] -> [IO Label]
-labelList list = map (\s -> labelNew (Just (show s))) list
+    where
+        labelList :: [Int] -> [IO Label]
+        labelList list = map (\s -> labelNew (Just (show s))) list
 
 getButtonFromTable :: TableField -> Int -> Int -> IO RowColButton
 getButtonFromTable (TableField table field) row col = 
@@ -149,8 +152,8 @@ buttonFunction2 button =
                         "X" -> " "
         buttonSetLabel button newTxt
         
-buttonFunction :: Button -> IO ()
-buttonFunction button = 
+buttonFunction :: RowColButton -> Correctness -> Solution -> IO ()
+buttonFunction (RowColButton button i j) correctness solution =  
     do
         txt <- buttonGetLabel button
         newTxt <-   if txt == " " 
@@ -159,3 +162,24 @@ buttonFunction button =
                         then (do widgetModifyBg button StateNormal (Color 65535 65535 65535); return "X")
                         else (do widgetModifyBg button StateNormal (Color 50000 50000 50000); return " ")
         buttonSetLabel button newTxt
+        checkEndGame correctness (RowColButton button i j) solution 
+        let (Correctness matrix endgame) = correctness
+        bool <- readMVar endgame
+        --print(bool)
+        if bool then stopGame else return ()
+
+stopGame :: IO ()
+stopGame = do
+    initGUI
+    window <- windowNew
+    print("a")
+    setWindowProps2 "Step One" window
+
+    onDestroy window mainQuit
+    widgetShowAll window
+    mainGUI
+
+setWindowProps2 :: String -> Window -> IO ()
+setWindowProps2 title window = 
+    set window [windowTitle := title, containerBorderWidth := 20,
+                windowDefaultWidth := 500, windowDefaultHeight := 500]
