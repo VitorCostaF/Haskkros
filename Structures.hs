@@ -7,7 +7,6 @@ import Control.Concurrent
 import Control.Monad
 --import System.IO
 
-<<<<<<< HEAD
 import InputOutput
 import CheckFunctions
 import Defines
@@ -20,33 +19,10 @@ addComp2Table table widg lAtt rAtt tAtt bAtt =
 addUnitComp2Table :: WidgetClass a => Table -> a -> Int -> Int -> IO ()
 addUnitComp2Table table widg row col = 
     addComp2Table table widg row (row + 1) col (col + 1) 
-=======
-type ButtonField = [[IO RowColButton]]
-type InfoRows = [[IO Label]]
-type InfoCols = [[IO Label]]
-type Solution = [[Int]]
-
-data RowColButton = RowColButton (IO Button) Int Int
-
-data TableField = TableField Table ButtonField
-
-data FullTable = FullTable Table ButtonField InfoRows InfoCols Solution
-
-addComp2Table :: WidgetClass a => Table ->IO a -> Int -> Int -> Int -> Int -> IO ()
-addComp2Table table widg lAtt rAtt tAtt bAtt =
-    do
-        aux <- widg
-        tableAttachDefaults table aux lAtt rAtt tAtt bAtt
-
-addUnitComp2Table :: WidgetClass a => Table -> IO a -> Int -> Int -> IO ()
-addUnitComp2Table table widg row col =
-    addComp2Table table widg row (row + 1) col (col + 1)
->>>>>>> 9baa13c1c7514ca362f16733f531c5b039ec1a00
 
 getButtonFromField :: ButtonField -> Int -> Int -> IO RowColButton
 getButtonFromField field row col = (field !! (row-1)) !! (col-1)
 
-<<<<<<< HEAD
 --createNewButton :: String -> IO Button
 --createNewButton str = 
 --    do 
@@ -56,26 +32,13 @@ getButtonFromField field row col = (field !! (row-1)) !! (col-1)
 
 createNewRowColButton :: Int -> Int -> String -> Correctness -> Solution -> IO RowColButton
 createNewRowColButton i j string correctness solution = 
-=======
-createNewButton :: String -> IO Button
-createNewButton str =
-    do
-        button <- buttonNewWithLabel str
-        widgetModifyBg button StateNormal (Color 50000 50000 50000)
-        buttonSetFocusOnClick button False
-        onClicked button (buttonFunction button)
-        return button
-
-createNewRowColButton :: Int -> Int -> String -> IO RowColButton
-createNewRowColButton i j string =
->>>>>>> 9baa13c1c7514ca362f16733f531c5b039ec1a00
     do
         button <- buttonNewWithLabel string
         widgetModifyBg button StateNormal (Color 50000 50000 50000)
         let rowColButton = (RowColButton button i j)
         onClicked button (buttonFunction rowColButton correctness solution)
         return (rowColButton)
-
+        
 createButtonField :: Int -> Int -> Correctness -> Solution -> ButtonField
 createButtonField rows cols correctness solution =
     [[createNewRowColButton i j " " correctness solution | i <-[0..(rows-1)]] | j <- [0..(cols-1)]]
@@ -108,16 +71,10 @@ setField2Table table field rows cols= setField2TableRow table field (halfInt row
 
 setRowCol :: Table -> [IO Label] -> Int -> Int -> Bool -> IO ()
 setRowCol _ [] _ _ _ = return ()
-<<<<<<< HEAD
 setRowCol table (labIO:labels) row col isRow = 
     do 
         lab <- labIO
         addUnitComp2Table table lab col row  
-=======
-setRowCol table (lab:labels) row col isRow =
-    do
-        addUnitComp2Table table lab col row
->>>>>>> 9baa13c1c7514ca362f16733f531c5b039ec1a00
         setRowCol table labels newRow newCol isRow
             where
                 newRow = row + (fromEnum (not isRow))
@@ -143,14 +100,13 @@ setInfos2Table table infoRows infoCols rowMax colMax =
     do
         setInfoRow2Table table infoRows rowMax colMax
         setInfoCol2Table table infoCols rowMax colMax
-{-
+{-}
 createFullTable :: FilePath -> IO FullTable
 createFullTable phase =
     do
-<<<<<<< HEAD
         setInfoRow2Table table infoRows rowMax colMax 
         setInfoCol2Table table infoCols rowMax colMax 
-
+-}
 createCorrectnees :: Int -> Int -> IO Correctness
 createCorrectnees nRows nCols =
     do
@@ -161,12 +117,10 @@ createCorrectnees nRows nCols =
         return ((Correctness mvarMatrix sGame))
 
         
-
+{-
 createFullTable :: FilePath -> IO FullTable 
 createFullTable phase = 
     do 
-=======
->>>>>>> 9baa13c1c7514ca362f16733f531c5b039ec1a00
         let path = "LevelsFiles/" ++ phase ++ "/" ++ phase
         let ext = ".haskkross"
         solution <- readNProcessFile (path ++ "Solution" ++ ext )
@@ -182,15 +136,6 @@ createFullTable phase =
         setField2Table table field rows cols
         setInfos2Table table infoRows infoCols (halfInt rows) (halfInt cols)
         --enableFieldFunction field
-<<<<<<< HEAD
-        return (FullTable table field infoRows infoCols solution correctness)
-
-createInfoList :: [[Int]] -> [[IO Label]]
-createInfoList matrix = map labelList matrix
-    where
-        labelList :: [Int] -> [IO Label]
-        labelList list = map (\s -> labelNew (Just (show s))) list
-=======
         return (FullTable table field infoRows infoCols solution)
 -}
 
@@ -205,16 +150,17 @@ createFullTable phase =
         --colsRead <- readNProcessFile (path ++ "Cols" ++ ext)
         let rows = length solution
         let cols = length (solution !! 0)
-        let field = createButtonField rows cols
+        correctness <- createCorrectnees rows cols
+        let field = createButtonField rows cols correctness solution
         let infoRows = createInfoListRow solution
-        print(length (infoRows!!0) )
+        --print(length (infoRows!!0) )
         let infoCols = createInfoListCol solution
         --let solution = createSolution rows cols
         table <- createTable rows cols
         setField2Table table field rows cols
         setInfos2Table table infoRows infoCols (halfInt rows) (halfInt cols)
         --enableFieldFunction field
-        return (FullTable table field infoRows infoCols solution)
+        return (FullTable table field infoRows infoCols solution correctness)
 
 --createInfoList :: [[Int]] -> [[IO Label]]
 --createInfoList matrix = map labelList matrix
@@ -236,7 +182,6 @@ createLabel (x:xs) (c:cs) y
 
 labelList :: [Int] -> [IO Label]
 labelList list = map (\s -> labelNew (Just (show s))) list
->>>>>>> 9baa13c1c7514ca362f16733f531c5b039ec1a00
 
 getButtonFromTable :: TableField -> Int -> Int -> IO RowColButton
 getButtonFromTable (TableField table field) row col =
@@ -251,15 +196,9 @@ buttonFunction2 button =
                         "  " -> "X"
                         "X" -> " "
         buttonSetLabel button newTxt
-<<<<<<< HEAD
         
 buttonFunction :: RowColButton -> Correctness -> Solution -> IO ()
 buttonFunction (RowColButton button i j) correctness solution =  
-=======
-
-buttonFunction :: Button -> IO ()
-buttonFunction button =
->>>>>>> 9baa13c1c7514ca362f16733f531c5b039ec1a00
     do
         txt <- buttonGetLabel button
         newTxt <-   if txt == " "
@@ -268,7 +207,6 @@ buttonFunction button =
                         then (do widgetModifyBg button StateNormal (Color 65535 65535 65535); return "X")
                         else (do widgetModifyBg button StateNormal (Color 50000 50000 50000); return " ")
         buttonSetLabel button newTxt
-<<<<<<< HEAD
         checkEndGame correctness (RowColButton button i j) solution 
         let (Correctness matrix endgame) = correctness
         bool <- readMVar endgame
@@ -290,5 +228,3 @@ setWindowProps2 :: String -> Window -> IO ()
 setWindowProps2 title window = 
     set window [windowTitle := title, containerBorderWidth := 20,
                 windowDefaultWidth := 500, windowDefaultHeight := 500]
-=======
->>>>>>> 9baa13c1c7514ca362f16733f531c5b039ec1a00
