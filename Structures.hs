@@ -12,33 +12,33 @@ import CheckFunctions
 import Defines
 
 addComp2Table :: WidgetClass a => Table -> a -> Int -> Int -> Int -> Int -> IO ()
-addComp2Table table widg lAtt rAtt tAtt bAtt = 
-    do 
+addComp2Table table widg lAtt rAtt tAtt bAtt =
+    do
         tableAttachDefaults table widg lAtt rAtt tAtt bAtt
 
 addUnitComp2Table :: WidgetClass a => Table -> a -> Int -> Int -> IO ()
-addUnitComp2Table table widg row col = 
-    addComp2Table table widg row (row + 1) col (col + 1) 
+addUnitComp2Table table widg row col =
+    addComp2Table table widg row (row + 1) col (col + 1)
 
 getButtonFromField :: ButtonField -> Int -> Int -> IO RowColButton
 getButtonFromField field row col = (field !! (row-1)) !! (col-1)
 
 --createNewButton :: String -> IO Button
---createNewButton str = 
---    do 
+--createNewButton str =
+--    do
 --        button <- buttonNewWithLabel str
 --        widgetModifyBg button StateNormal (Color 50000 50000 50000)
 --        return button
 
 createNewRowColButton :: Int -> Int -> String -> Correctness -> Solution -> IO RowColButton
-createNewRowColButton i j string correctness solution = 
+createNewRowColButton i j string correctness solution =
     do
         button <- buttonNewWithLabel string
         widgetModifyBg button StateNormal (Color 50000 50000 50000)
         let rowColButton = (RowColButton button i j)
         onClicked button (buttonFunction rowColButton correctness solution)
         return (rowColButton)
-        
+
 createButtonField :: Int -> Int -> Correctness -> Solution -> ButtonField
 createButtonField rows cols correctness solution =
     [[createNewRowColButton i j " " correctness solution | i <-[0..(rows-1)]] | j <- [0..(cols-1)]]
@@ -71,10 +71,10 @@ setField2Table table field rows cols= setField2TableRow table field (halfInt row
 
 setRowCol :: Table -> [IO Label] -> Int -> Int -> Bool -> IO ()
 setRowCol _ [] _ _ _ = return ()
-setRowCol table (labIO:labels) row col isRow = 
-    do 
+setRowCol table (labIO:labels) row col isRow =
+    do
         lab <- labIO
-        addUnitComp2Table table lab col row  
+        addUnitComp2Table table lab col row
         setRowCol table labels newRow newCol isRow
             where
                 newRow = row + (fromEnum (not isRow))
@@ -102,26 +102,26 @@ setInfos2Table table infoRows infoCols rowMax colMax =
         setInfoCol2Table table infoCols rowMax colMax
 {-}
 createFullTable :: FilePath -> IO FullTable
-createFullTable phase =
+createFullTable level =
     do
-        setInfoRow2Table table infoRows rowMax colMax 
-        setInfoCol2Table table infoCols rowMax colMax 
+        setInfoRow2Table table infoRows rowMax colMax
+        setInfoCol2Table table infoCols rowMax colMax
 -}
 createCorrectnees :: Int -> Int -> IO Correctness
 createCorrectnees nRows nCols =
     do
-        let matrix = [ [ False | i <- [0..(nRows-1)] ] | j <- [0..(nCols - 1)] ]  
+        let matrix = [ [ False | i <- [0..(nRows-1)] ] | j <- [0..(nCols - 1)] ]
         sGame <- newEmptyMVar
         putMVar sGame False
         mvarMatrix <- newMVar matrix
         return ((Correctness mvarMatrix sGame))
 
-        
+
 {-
-createFullTable :: FilePath -> IO FullTable 
-createFullTable phase = 
-    do 
-        let path = "LevelsFiles/" ++ phase ++ "/" ++ phase
+createFullTable :: FilePath -> IO FullTable
+createFullTable level =
+    do
+        let path = "LevelsFiles/" ++ level ++ "/" ++ level
         let ext = ".haskkross"
         solution <- readNProcessFile (path ++ "Solution" ++ ext )
         rowsRead <- readNProcessFile (path ++ "Rows" ++ ext)
@@ -129,7 +129,7 @@ createFullTable phase =
         correctness <- createCorrectnees 5 5
         let rows = length solution
         let cols = length (solution !! 0)
-        let field = createButtonField rows cols correctness solution 
+        let field = createButtonField rows cols correctness solution
         let infoRows = createInfoList rowsRead
         let infoCols = createInfoList colsRead
         table <- createTable rows cols
@@ -141,11 +141,11 @@ createFullTable phase =
 
 -- Alterado:
 createFullTable :: FilePath -> IO FullTable
-createFullTable phase =
+createFullTable level =
     do
-        let path = "LevelsFiles/" ++ phase ++ "/" ++ phase
-        let ext = ".haskkross"
-        solution <- readNProcessFile (path ++ "Solution" ++ ext )
+        let path = "LevelsFiles/" ++ level ++ "/" ++ level
+        let ext = ".haskross"
+        solution <- readNProcessFile (path ++ ext )
         let rows = length solution
         let cols = length (solution !! 0)
         correctness <- createCorrectnees rows cols
@@ -179,9 +179,9 @@ getButtonFromTable :: TableField -> Int -> Int -> IO RowColButton
 getButtonFromTable (TableField table field) row col =
     getButtonFromField field row col
 
-        
+
 buttonFunction :: RowColButton -> Correctness -> Solution -> IO ()
-buttonFunction (RowColButton button i j) correctness solution =  
+buttonFunction (RowColButton button i j) correctness solution =
     do
         txt <- buttonGetLabel button
         newTxt <-   if txt == " "
@@ -190,7 +190,7 @@ buttonFunction (RowColButton button i j) correctness solution =
                         then (do widgetModifyBg button StateNormal (Color 65535 65535 65535); return "X")
                         else (do widgetModifyBg button StateNormal (Color 50000 50000 50000); return " ")
         buttonSetLabel button newTxt
-        checkEndGame correctness (RowColButton button i j) solution 
+        checkEndGame correctness (RowColButton button i j) solution
         let (Correctness matrix endgame) = correctness
         bool <- readMVar endgame
         --print(bool)
@@ -208,6 +208,6 @@ stopGame = do
     mainGUI
 
 setWindowProps2 :: String -> Window -> IO ()
-setWindowProps2 title window = 
+setWindowProps2 title window =
     set window [windowTitle := title, containerBorderWidth := 20,
                 windowDefaultWidth := 500, windowDefaultHeight := 500]
