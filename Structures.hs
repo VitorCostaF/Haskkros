@@ -14,14 +14,14 @@ addComp2Table :: WidgetClass a => Table -> a -> Int -> Int -> Int -> Int -> IO (
 addComp2Table table widg lAtt rAtt tAtt bAtt = tableAttachDefaults table widg lAtt rAtt tAtt bAtt
 
 createNewRowColButton :: Int -> Int -> String -> Correctness -> Solution -> Table -> Image -> IO RowColButton
-createNewRowColButton i j string correctness solution table image = 
+createNewRowColButton i j string correctness solution table image =
     do
         button <- buttonNewWithLabel string
         widgetModifyBg button StateNormal (Color 50000 50000 50000)
         let rowColButton = (RowColButton button i j)
         onClicked button (buttonFunction rowColButton correctness solution table image)
         return (rowColButton)
-        
+
 createButtonField :: Int -> Int -> Correctness -> Solution -> Table -> Image -> ButtonField
 createButtonField rows cols correctness solution table image =
     [[createNewRowColButton i j " " correctness solution table image | i <-[0..(rows-1)]] | j <- [0..(cols-1)]]
@@ -102,7 +102,7 @@ createFullTable level =
         let cols = length (solution !! 0)
         correctness <- createCorrectnees rows cols
         table <- createTable rows cols
-        image <- imageNewFromFile "fimDeJogo.png" 
+        image <- imageNewFromFile "fimDeJogo.png"
         let field = createButtonField rows cols correctness solution table image
         let infoRows = createInfoListRow solution
         let infoCols = createInfoListCol solution
@@ -115,10 +115,10 @@ createInfoListRow :: [[Int]] -> [[IO Label]]
 createInfoListRow matrix = map labelList $ reverse $ [createLabel z [0] (-1) | z <- (reverse matrix)]
 
 createInfoListCol :: [[Int]] -> [[IO Label]]
-createInfoListCol matrix = map labelList $ reverse [createLabel (map (!! n) (reverse matrix)) [0] (-1) | n <- [0..((length matrix)-1 )]]
+createInfoListCol matrix = map labelList $ [createLabel (map (!! n) (reverse matrix)) [0] (-1) | n <- [0..((length matrix)-1 )]]
 
 createLabel :: [Int] -> [Int] -> Int -> [Int]
-createLabel [] c _ = init c
+createLabel [] c _ = reverse (init c)
 createLabel (x:xs) (c:cs) y
   | x == 0    = createLabel xs (c:cs) (-1)
   | x == y    = createLabel xs ((c+1):cs) (x)
@@ -129,12 +129,12 @@ labelList :: [Int] -> [IO Label]
 labelList list = map (\s -> labelNew (Just (show s))) list
 
 buttonFunction :: RowColButton -> Correctness -> Solution -> Table -> Image -> IO ()
-buttonFunction (RowColButton button i j) correctness solution table image =  
+buttonFunction (RowColButton button i j) correctness solution table image =
     do
         let (Correctness matrix endgame) = correctness
         bool <- readMVar endgame
         if bool then return ()
-        else (do 
+        else (do
             txt <- buttonGetLabel button
             newTxt <-   if txt == " "
                         then (do widgetModifyBg button StateNormal (Color 0 0 0); return "  ")
@@ -142,15 +142,14 @@ buttonFunction (RowColButton button i j) correctness solution table image =
                             then (do widgetModifyBg button StateNormal (Color 65535 65535 65535); return "X")
                             else (do widgetModifyBg button StateNormal (Color 50000 50000 50000); return " ")
             buttonSetLabel button newTxt
-            checkEndGame correctness (RowColButton button i j) solution 
+            checkEndGame correctness (RowColButton button i j) solution
             let (Correctness matrix endgame) = correctness
             newBool <- readMVar endgame
             --print(bool)
             if newBool then stopGame table image else return () )
 
 stopGame :: Table -> Image ->  IO ()
-stopGame table image = 
-    do 
-        addComp2Table table image 0 3 0 3 
+stopGame table image =
+    do
+        addComp2Table table image 0 3 0 3
         widgetShow image
-
