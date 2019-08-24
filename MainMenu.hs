@@ -28,9 +28,9 @@ createMainMenu = do
 
     createAboutButton mainMenuTable window
     createTutorialButton mainMenuTable window
-    tableAttachDefaults mainMenuTable labelTitle 1 11 0 1
+    tableAttachDefaults mainMenuTable labelTitle 1 12 0 1
     containerAdd window mainMenuTable
-    mapM (createLevelButton mainMenuTable window) $ map show [1..9]
+    mapM (createLevelButton mainMenuTable window) $ map show [1..10]
 
 
     onDestroy window mainQuit
@@ -44,7 +44,7 @@ createAboutButton table window =
         aboutTable <- tableNew 10 1 True
         button <- buttonNewWithLabel ("About")
         onClicked button (createAboutTable aboutTable window button)
-        tableAttachDefaults table button 1 11 13 14
+        tableAttachDefaults table button 1 11 14 15
 createAboutTable :: Table -> Window -> Button -> IO ()
 createAboutTable aboutTable window button =
     do
