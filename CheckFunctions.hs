@@ -8,7 +8,7 @@ import Defines
 
 buttonEqualSol :: String -> Int -> Bool
 buttonEqualSol txt value 
-    | (value == 0) && ((txt == "X") || (txt == " ") ) = True
+    | (txt == "X") && (value == 0) = True
     | (txt == "  ") && (value == 1) = True
     | otherwise = False 
 

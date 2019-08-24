@@ -19,4 +19,4 @@ type MatrixMVar = [[Bool]]
 data RowColButton = RowColButton Button Int Int 
 data TableField = TableField Table ButtonField
 data Correctness = Correctness (MVar MatrixMVar) (MVar Bool)
-data FullTable = FullTable Table ButtonField InfoRows InfoCols Solution Correctness
+data FullTable = FullTable Table ButtonField InfoRows InfoCols Solution Correctness Image

@@ -56,7 +56,7 @@ createLevelButton mmtable window levelNb =
 createLevelTable :: Table -> Window -> LevelID -> Button -> IO()
 createLevelTable mainMenuTable window levelNb button = do
     --set window [windowTitle := ("Level "++levelNb)]
-    (FullTable lvtable field infoRows infoCols solution correctness) <- createFullTable ("Level"++levelNb)
+    (FullTable lvtable field infoRows infoCols solution correctness image) <- createFullTable ("Level"++levelNb)
     widgetHideAll window
     createLevelWindow lvtable 
     widgetShowAll window

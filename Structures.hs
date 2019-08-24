@@ -5,7 +5,6 @@ import Graphics.UI.Gtk
 import Data.Char
 import Control.Concurrent
 import Control.Monad
---import System.IO
 
 import InputOutput
 import CheckFunctions
@@ -23,25 +22,19 @@ addUnitComp2Table table widg row col =
 getButtonFromField :: ButtonField -> Int -> Int -> IO RowColButton
 getButtonFromField field row col = (field !! (row-1)) !! (col-1)
 
---createNewButton :: String -> IO Button
---createNewButton str = 
---    do 
---        button <- buttonNewWithLabel str
---        widgetModifyBg button StateNormal (Color 50000 50000 50000)
---        return button
 
-createNewRowColButton :: Int -> Int -> String -> Correctness -> Solution -> IO RowColButton
-createNewRowColButton i j string correctness solution = 
+createNewRowColButton :: Int -> Int -> String -> Correctness -> Solution -> Table -> Image -> IO RowColButton
+createNewRowColButton i j string correctness solution table image = 
     do
         button <- buttonNewWithLabel string
         widgetModifyBg button StateNormal (Color 50000 50000 50000)
         let rowColButton = (RowColButton button i j)
-        onClicked button (buttonFunction rowColButton correctness solution)
+        onClicked button (buttonFunction rowColButton correctness solution table image)
         return (rowColButton)
         
-createButtonField :: Int -> Int -> Correctness -> Solution -> ButtonField
-createButtonField rows cols correctness solution =
-    [[createNewRowColButton i j " " correctness solution | i <-[0..(rows-1)]] | j <- [0..(cols-1)]]
+createButtonField :: Int -> Int -> Correctness -> Solution -> Table -> Image -> ButtonField
+createButtonField rows cols correctness solution table image =
+    [[createNewRowColButton i j " " correctness solution table image | i <-[0..(rows-1)]] | j <- [0..(cols-1)]]
 
 halfInt :: Int -> Int
 halfInt n = n `div` 2 + 1
@@ -100,13 +93,7 @@ setInfos2Table table infoRows infoCols rowMax colMax =
     do
         setInfoRow2Table table infoRows rowMax colMax
         setInfoCol2Table table infoCols rowMax colMax
-{-}
-createFullTable :: FilePath -> IO FullTable
-createFullTable phase =
-    do
-        setInfoRow2Table table infoRows rowMax colMax 
-        setInfoCol2Table table infoCols rowMax colMax 
--}
+
 createCorrectnees :: Int -> Int -> IO Correctness
 createCorrectnees nRows nCols =
     do
@@ -115,29 +102,6 @@ createCorrectnees nRows nCols =
         putMVar sGame False
         mvarMatrix <- newMVar matrix
         return ((Correctness mvarMatrix sGame))
-
-        
-{-
-createFullTable :: FilePath -> IO FullTable 
-createFullTable phase = 
-    do 
-        let path = "LevelsFiles/" ++ phase ++ "/" ++ phase
-        let ext = ".haskkross"
-        solution <- readNProcessFile (path ++ "Solution" ++ ext )
-        rowsRead <- readNProcessFile (path ++ "Rows" ++ ext)
-        colsRead <- readNProcessFile (path ++ "Cols" ++ ext)
-        correctness <- createCorrectnees 5 5
-        let rows = length solution
-        let cols = length (solution !! 0)
-        let field = createButtonField rows cols correctness solution 
-        let infoRows = createInfoList rowsRead
-        let infoCols = createInfoList colsRead
-        table <- createTable rows cols
-        setField2Table table field rows cols
-        setInfos2Table table infoRows infoCols (halfInt rows) (halfInt cols)
-        --enableFieldFunction field
-        return (FullTable table field infoRows infoCols solution)
--}
 
 -- Alterado:
 createFullTable :: FilePath -> IO FullTable
@@ -149,13 +113,14 @@ createFullTable phase =
         let rows = length solution
         let cols = length (solution !! 0)
         correctness <- createCorrectnees rows cols
-        let field = createButtonField rows cols correctness solution
+        table <- createTable rows cols
+        image <- imageNewFromFile "fimDeJogo.png" 
+        let field = createButtonField rows cols correctness solution table image
         let infoRows = createInfoListRow solution
         let infoCols = createInfoListCol solution
-        table <- createTable rows cols
         setField2Table table field rows cols
         setInfos2Table table infoRows infoCols (halfInt rows) (halfInt cols)
-        return (FullTable table field infoRows infoCols solution correctness)
+        return (FullTable table field infoRows infoCols solution correctness image)
 
 --Alterado
 createInfoListRow :: [[Int]] -> [[IO Label]]
@@ -180,32 +145,33 @@ getButtonFromTable (TableField table field) row col =
     getButtonFromField field row col
 
         
-buttonFunction :: RowColButton -> Correctness -> Solution -> IO ()
-buttonFunction (RowColButton button i j) correctness solution =  
+buttonFunction :: RowColButton -> Correctness -> Solution -> Table -> Image -> IO ()
+buttonFunction (RowColButton button i j) correctness solution table image =  
     do
-        txt <- buttonGetLabel button
-        newTxt <-   if txt == " "
-                    then (do widgetModifyBg button StateNormal (Color 0 0 0); return "  ")
-                    else if txt == "  "
-                        then (do widgetModifyBg button StateNormal (Color 65535 65535 65535); return "X")
-                        else (do widgetModifyBg button StateNormal (Color 50000 50000 50000); return " ")
-        buttonSetLabel button newTxt
-        checkEndGame correctness (RowColButton button i j) solution 
         let (Correctness matrix endgame) = correctness
         bool <- readMVar endgame
-        --print(bool)
-        if bool then stopGame else return ()
+        if bool then return ()
+        else (do 
+            txt <- buttonGetLabel button
+            newTxt <-   if txt == " "
+                        then (do widgetModifyBg button StateNormal (Color 0 0 0); return "  ")
+                        else if txt == "  "
+                            then (do widgetModifyBg button StateNormal (Color 65535 65535 65535); return "X")
+                            else (do widgetModifyBg button StateNormal (Color 50000 50000 50000); return " ")
+            buttonSetLabel button newTxt
+            checkEndGame correctness (RowColButton button i j) solution 
+            let (Correctness matrix endgame) = correctness
+            newBool <- readMVar endgame
+            --print(bool)
+            if newBool then stopGame table image else return () )
 
-stopGame :: IO ()
-stopGame = do
-    initGUI
-    window <- windowNew
-    print("a")
-    setWindowProps2 "Step One" window
+stopGame :: Table -> Image ->  IO ()
+stopGame table image = 
+    do 
+        addComp2Table table image 0 3 0 3 
+        widgetShow image
 
-    onDestroy window mainQuit
-    widgetShowAll window
-    mainGUI
+
 
 setWindowProps2 :: String -> Window -> IO ()
 setWindowProps2 title window = 
