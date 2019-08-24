@@ -12,13 +12,6 @@ buttonEqualSol txt value
     | (txt == "  ") && (value == 1) = True
     | otherwise = False 
 
-
-funcAux :: MVar Bool -> Bool -> IO (MVar Bool) 
-funcAux var bool = 
-    do 
-        aux <- swapMVar var bool
-        return var
-
 createNewLine :: [Bool] -> Int -> Int -> Bool -> [Bool]
 createNewLine [] _ _ _ = []
 createNewLine (elem:line) col it bool 
@@ -39,12 +32,9 @@ newState mvarMatrix i j button sol =
         txt <- buttonGetLabel button
         matrix <- readMVar mvarMatrix
         let line = matrix !! i
-        --printaMatrix matrix
-        --print(txt)
         let newBool =  buttonEqualSol txt value
         let newLine = createNewLine line j 0 newBool 
         let newMatrix = createNewMatrix matrix i 0 newLine
-        printaMatrix newMatrix
         aux <- swapMVar mvarMatrix newMatrix
         return ()
         
@@ -66,11 +56,9 @@ checkEndGame (Correctness mvarMatrix endGame) (RowColButton button i j) solution
         newState mvarMatrix i j button solution
         matrix <- readMVar mvarMatrix
         let newEndGame = checkMatrix matrix 
-        --x <- swapMVar mvarMatrix newMatrix
-        --printaSol solution
-        --printaMatrix matrix
         putMVar endGame newEndGame
         return ()
+
 
 
 --funcoes para testes apenas

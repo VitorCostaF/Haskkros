@@ -146,24 +146,16 @@ createFullTable phase =
         let path = "LevelsFiles/" ++ phase ++ "/" ++ phase
         let ext = ".haskkross"
         solution <- readNProcessFile (path ++ "Solution" ++ ext )
-        --rowsRead <- readNProcessFile (path ++ "Rows" ++ ext)
-        --colsRead <- readNProcessFile (path ++ "Cols" ++ ext)
         let rows = length solution
         let cols = length (solution !! 0)
         correctness <- createCorrectnees rows cols
         let field = createButtonField rows cols correctness solution
         let infoRows = createInfoListRow solution
-        --print(length (infoRows!!0) )
         let infoCols = createInfoListCol solution
-        --let solution = createSolution rows cols
         table <- createTable rows cols
         setField2Table table field rows cols
         setInfos2Table table infoRows infoCols (halfInt rows) (halfInt cols)
-        --enableFieldFunction field
         return (FullTable table field infoRows infoCols solution correctness)
-
---createInfoList :: [[Int]] -> [[IO Label]]
---createInfoList matrix = map labelList matrix
 
 --Alterado
 createInfoListRow :: [[Int]] -> [[IO Label]]
@@ -187,15 +179,6 @@ getButtonFromTable :: TableField -> Int -> Int -> IO RowColButton
 getButtonFromTable (TableField table field) row col =
     getButtonFromField field row col
 
-buttonFunction2 :: Button -> IO ()
-buttonFunction2 button =
-    do
-        txt <- buttonGetLabel button
-        let newTxt = case txt of
-                        " " -> "  "
-                        "  " -> "X"
-                        "X" -> " "
-        buttonSetLabel button newTxt
         
 buttonFunction :: RowColButton -> Correctness -> Solution -> IO ()
 buttonFunction (RowColButton button i j) correctness solution =  
