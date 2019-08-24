@@ -5,17 +5,10 @@ import Control.Concurrent
 import Control.Monad
 
 import Defines
-{-
-type Solution = [[Int]]
 
-type MVarBool = MVar Bool
-type MatrixMVar = [[IO MVarBool]]
-data RowColButton = RowColButton (IO Button) Int Int 
-data Correctness = Correctness MatrixMVar (MVar Bool)
--}
 buttonEqualSol :: String -> Int -> Bool
 buttonEqualSol txt value 
-    | (txt == "X") && (value == 0) = True
+    | (value == 0) && ((txt == "X") || (txt == " ") ) = True
     | (txt == "  ") && (value == 1) = True
     | otherwise = False 
 
@@ -26,42 +19,54 @@ funcAux var bool =
         aux <- swapMVar var bool
         return var
 
-newState :: MatrixMVar -> Int -> Int -> Button -> [[Int]] -> IO MatrixMVar
-newState matrix i j button sol =
+createNewLine :: [Bool] -> Int -> Int -> Bool -> [Bool]
+createNewLine [] _ _ _ = []
+createNewLine (elem:line) col it bool 
+    | it == col = bool : line
+    | otherwise = elem : createNewLine line col (it + 1) bool
+
+
+createNewMatrix :: MatrixMVar -> Int -> Int -> [Bool] -> MatrixMVar
+createNewMatrix [] _ _ _ = []
+createNewMatrix (m:matrix) line it newLine 
+    | it == line = newLine : matrix
+    | otherwise = m : createNewMatrix matrix line (it+1) newLine
+
+newState :: MVar MatrixMVar -> Int -> Int -> Button -> [[Int]] -> IO ()
+newState mvarMatrix i j button sol =
     do 
-        let value = ((sol !! i) !! j)
+        let value = sol !! i !! j
         txt <- buttonGetLabel button
+        matrix <- readMVar mvarMatrix
+        let line = matrix !! i
+        --printaMatrix matrix
         --print(txt)
-        val <- (matrix !! i !! j)
-        let bool =  buttonEqualSol txt value
-        x <- funcAux val bool
-        return matrix
+        let newBool =  buttonEqualSol txt value
+        let newLine = createNewLine line j 0 newBool 
+        let newMatrix = createNewMatrix matrix i 0 newLine
+        printaMatrix newMatrix
+        aux <- swapMVar mvarMatrix newMatrix
+        return ()
         
 
 
-checkRow :: [IO (MVar Bool)] -> IO Bool
-checkRow [] = return (True)
-checkRow (elemIO:row) =
-    do 
-        elem <- elemIO
-        vElem <- readMVar elem
-        pure (&&) <*> (pure vElem) <*> (checkRow row)
+checkRow :: [Bool] -> Bool
+checkRow [] = True
+checkRow (elem:row) = elem && (checkRow row)
 
 
-checkMatrix :: MatrixMVar -> IO Bool
-checkMatrix [] = do return(True)
-checkMatrix (row:matrix) = 
-    do 
-        pure (&&) <*> (checkRow row) <*> (checkMatrix matrix)
+checkMatrix :: MatrixMVar -> Bool
+checkMatrix [] = True
+checkMatrix (row:matrix) = (checkRow row) && (checkMatrix matrix)
 
 checkEndGame :: Correctness -> RowColButton -> Solution -> IO ()
 checkEndGame (Correctness mvarMatrix endGame) (RowColButton button i j) solution =
     do
         vEndGame <- takeMVar endGame
+        newState mvarMatrix i j button solution
         matrix <- readMVar mvarMatrix
-        newMatrix <- newState matrix i j button solution
-        newEndGame <- checkMatrix matrix 
-        x <- swapMVar mvarMatrix newMatrix
+        let newEndGame = checkMatrix matrix 
+        --x <- swapMVar mvarMatrix newMatrix
         --printaSol solution
         --printaMatrix matrix
         putMVar endGame newEndGame
@@ -83,13 +88,11 @@ printaSol (line:lines) =
         printaSol lines
 
 
-printaLine :: [IO (MVar Bool)] -> String -> IO ()
+printaLine :: [Bool] -> String -> IO ()
 printaLine [] acc = do print ( acc)
-printaLine (elemIO:line) acc = 
+printaLine (elem:line) acc = 
     do 
-        elem <- elemIO
-        val <- readMVar elem
-        printaLine line (acc ++ (show val) ++ " ") 
+        printaLine line (acc ++ (show elem) ++ " ") 
 
 printaMatrix :: MatrixMVar -> IO ()
 printaMatrix [] = do print("================================")

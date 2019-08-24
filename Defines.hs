@@ -13,7 +13,7 @@ type ButtonField = [[IO RowColButton]]
 type InfoRows = [[IO Label]]
 type InfoCols = [[IO Label]]
 type Solution = [[Int]]
-type MatrixMVar = [[IO (MVar Bool)]]
+type MatrixMVar = [[Bool]]
 
 --data MVarBool = MVar Bool
 data RowColButton = RowColButton Button Int Int 

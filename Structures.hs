@@ -110,7 +110,7 @@ createFullTable phase =
 createCorrectnees :: Int -> Int -> IO Correctness
 createCorrectnees nRows nCols =
     do
-        let matrix = [ [newMVar False | i <- [0..(nRows-1)] ] | j <- [0..(nCols - 1)] ]  
+        let matrix = [ [ False | i <- [0..(nRows-1)] ] | j <- [0..(nCols - 1)] ]  
         sGame <- newEmptyMVar
         putMVar sGame False
         mvarMatrix <- newMVar matrix
