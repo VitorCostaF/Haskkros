@@ -25,6 +25,7 @@ createMainMenu = do
 
     setWindowProps "Main Menu" window
     mainMenuTable <- tableNew 14 12 True
+
     createAboutButton mainMenuTable window
     createTutorialButton mainMenuTable window
     tableAttachDefaults mainMenuTable labelTitle 1 11 0 1
@@ -38,17 +39,49 @@ createMainMenu = do
 
     --buttonTutorial <-
 createAboutButton :: Table -> Window -> IO ()
-createAboutButton mmtable window =
+createAboutButton table window =
     do
+        aboutTable <- tableNew 10 1 True
         button <- buttonNewWithLabel ("About")
-        --onClicked button (createAboutTable mmtable window levelNb button)
-        tableAttachDefaults mmtable button 1 11 13 14
+        onClicked button (createAboutTable aboutTable window button)
+        tableAttachDefaults table button 1 11 13 14
+createAboutTable :: Table -> Window -> Button -> IO ()
+createAboutTable aboutTable window button =
+    do
+        labelLine1 <- labelNew (Just "Haskross")
+        labelSetMarkup labelLine1 "<b><big><big><big><big>Haskross</big></big></big></big></b>"
+        labelLine2 <- labelNew (Just "This game was created by Uematsu, F.; Lima, M. and Costa Farias, V.")
+        labelLine3 <- labelNew (Just "as a project for the Programming Paradigms discipline in the")
+        labelLine4 <- labelNew (Just "Computer Science course at the Federal University of ABC (Brazil).")
+        tableAttachDefaults aboutTable labelLine1 0 1 0 1
+        tableAttachDefaults aboutTable labelLine2 0 1 4 5
+        tableAttachDefaults aboutTable labelLine3 0 1 5 6
+        tableAttachDefaults aboutTable labelLine4 0 1 6 7
+
+        widgetHideAll window
+        createAboutWindow aboutTable
+        widgetShowAll window
+
+
+createAboutWindow :: Table -> IO ()
+createAboutWindow aboutTable =
+    do
+        initGUI
+        window <- windowNew
+        setWindowProps ("About") window
+        containerAdd  window aboutTable
+        onDestroy  window mainQuit
+        widgetShowAll  window
+        mainGUI
+
 createTutorialButton :: Table -> Window -> IO ()
 createTutorialButton mmtable window =
     do
         button <- buttonNewWithLabel ("Tutorial")
         --onClicked button (createTutorialTable mmtable window levelNb button)
         tableAttachDefaults mmtable button 1 11 1 2
+--createTutorialTable :: Table -> Window -> Button -> IO ()
+--createTutorialTable
 createLevelButton :: Table -> Window -> LevelID -> IO ()
 createLevelButton mmtable window levelNb =
     do
