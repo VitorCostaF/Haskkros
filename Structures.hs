@@ -11,14 +11,7 @@ import CheckFunctions
 import Defines
 
 addComp2Table :: WidgetClass a => Table -> a -> Int -> Int -> Int -> Int -> IO ()
-addComp2Table table widg lAtt rAtt tAtt bAtt =
-    do
-        tableAttachDefaults table widg lAtt rAtt tAtt bAtt
-
-addUnitComp2Table :: WidgetClass a => Table -> a -> Int -> Int -> IO ()
-addUnitComp2Table table widg row col =
-    addComp2Table table widg row (row + 1) col (col + 1)
-
+addComp2Table table widg lAtt rAtt tAtt bAtt = tableAttachDefaults table widg lAtt rAtt tAtt bAtt
 
 createNewRowColButton :: Int -> Int -> String -> Correctness -> Solution -> Table -> Image -> IO RowColButton
 createNewRowColButton i j string correctness solution table image = 
@@ -54,7 +47,6 @@ setField2TableRow table (part:field) i j = do
     setField2TableCol table part i j
     setField2TableRow table field (i+1) j
 
---retirar
 setField2Table :: Table -> ButtonField -> Int -> Int -> IO ()
 setField2Table table field rows cols= setField2TableRow table field (halfInt rows) (halfInt cols)
 
@@ -90,6 +82,7 @@ setInfos2Table table infoRows infoCols rowMax colMax =
     do
         setInfoRow2Table table infoRows rowMax colMax
         setInfoCol2Table table infoCols rowMax colMax
+
 createCorrectnees :: Int -> Int -> IO Correctness
 createCorrectnees nRows nCols =
     do
@@ -99,7 +92,6 @@ createCorrectnees nRows nCols =
         mvarMatrix <- newMVar matrix
         return ((Correctness mvarMatrix sGame))
 
--- Alterado:
 createFullTable :: FilePath -> IO FullTable
 createFullTable level =
     do
@@ -114,17 +106,17 @@ createFullTable level =
         let field = createButtonField rows cols correctness solution table image
         let infoRows = createInfoListRow solution
         let infoCols = createInfoListCol solution
-        setField2Table table field rows cols
+        setField2TableRow table field (halfInt rows) (halfInt cols)
         setInfos2Table table infoRows infoCols (halfInt rows) (halfInt cols)
         return (FullTable table field infoRows infoCols solution correctness image)
 
---Alterado
+
 createInfoListRow :: [[Int]] -> [[IO Label]]
 createInfoListRow matrix = map labelList $ reverse $ [createLabel z [0] (-1) | z <- (reverse matrix)]
---Alterado
+
 createInfoListCol :: [[Int]] -> [[IO Label]]
 createInfoListCol matrix = map labelList $ reverse [createLabel (map (!! n) (reverse matrix)) [0] (-1) | n <- [0..((length matrix)-1 )]]
---Novo
+
 createLabel :: [Int] -> [Int] -> Int -> [Int]
 createLabel [] c _ = init c
 createLabel (x:xs) (c:cs) y
@@ -162,9 +154,3 @@ stopGame table image =
         addComp2Table table image 0 3 0 3 
         widgetShow image
 
-
-
-setWindowProps2 :: String -> Window -> IO ()
-setWindowProps2 title window =
-    set window [windowTitle := title, containerBorderWidth := 20,
-                windowDefaultWidth := 500, windowDefaultHeight := 500]
