@@ -102,7 +102,7 @@ createFullTable level =
         let cols = length (solution !! 0)
         correctness <- createCorrectnees rows cols
         table <- createTable rows cols
-        image <- imageNewFromFile "fimDeJogo.png" 
+        image <- imageNewFromFile "FimDeJogo.png" 
         let field = createButtonField rows cols correctness solution table image
         let infoRows = createInfoListRow solution
         let infoCols = createInfoListCol solution
