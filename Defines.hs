@@ -13,10 +13,8 @@ type ButtonField = [[IO RowColButton]]
 type InfoRows = [[IO Label]]
 type InfoCols = [[IO Label]]
 type Solution = [[Int]]
-type MatrixMVar = [[Bool]]
+type MatrixBool = [[Bool]]
 
---data MVarBool = MVar Bool
 data RowColButton = RowColButton Button Int Int 
-data TableField = TableField Table ButtonField
-data Correctness = Correctness (MVar MatrixMVar) (MVar Bool)
+data Correctness = Correctness (MVar MatrixBool) (MVar Bool)
 data FullTable = FullTable Table ButtonField InfoRows InfoCols Solution Correctness Image

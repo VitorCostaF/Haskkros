@@ -19,13 +19,13 @@ createNewLine (elem:line) col it bool
     | otherwise = elem : createNewLine line col (it + 1) bool
 
 
-createNewMatrix :: MatrixMVar -> Int -> Int -> [Bool] -> MatrixMVar
+createNewMatrix :: MatrixBool -> Int -> Int -> [Bool] -> MatrixBool
 createNewMatrix [] _ _ _ = []
 createNewMatrix (m:matrix) line it newLine 
     | it == line = newLine : matrix
     | otherwise = m : createNewMatrix matrix line (it+1) newLine
 
-newState :: MVar MatrixMVar -> Int -> Int -> Button -> [[Int]] -> IO ()
+newState :: MVar MatrixBool -> Int -> Int -> Button -> [[Int]] -> IO ()
 newState mvarMatrix i j button sol =
     do 
         let value = sol !! i !! j
@@ -45,7 +45,7 @@ checkRow [] = True
 checkRow (elem:row) = elem && (checkRow row)
 
 
-checkMatrix :: MatrixMVar -> Bool
+checkMatrix :: MatrixBool -> Bool
 checkMatrix [] = True
 checkMatrix (row:matrix) = (checkRow row) && (checkMatrix matrix)
 
@@ -82,7 +82,7 @@ printaLine (elem:line) acc =
     do 
         printaLine line (acc ++ (show elem) ++ " ") 
 
-printaMatrix :: MatrixMVar -> IO ()
+printaMatrix :: MatrixBool -> IO ()
 printaMatrix [] = do print("================================")
 printaMatrix (line:lines) =
     do 
