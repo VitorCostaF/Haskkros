@@ -110,6 +110,7 @@ createInfoListCol :: [[Int]] -> [[IO Label]]
 createInfoListCol matrix = map labelList [createLabel (map (!! n) (reverse matrix)) [0] (-1) | n <- [0..((length matrix)-1 )]]
 
 createLabel :: [Int] -> [Int] -> Int -> [Int]
+createLabel [] [0] _ = [0]
 createLabel [] c _ = (init c)
 createLabel (x:xs) (c:cs) y
   | x == 0    = createLabel xs (c:cs) (-1)
