@@ -55,30 +55,27 @@ checkEndGame (Correctness mvarMatrix endGame) (RowColButton button i j) solution
         return ()
 
 
-        --funções para visualização da matriz de soluções
-printaSolLine :: [Int] -> String -> IO ()
-printaSolLine [] acc = do print ( acc)
-printaSolLine (elem:line) acc = 
-    do 
-        printaSolLine line (acc ++ (show elem) ++ " ") 
+
+--funções para visualização da matriz de soluções
+--usadas apenas para testes 
+printaSolLine :: [Int] -> String -> String
+printaSolLine line acc = foldr (\s a-> " " ++ (show s) ++ a) acc line
 
 printaSol :: Solution -> IO ()
 printaSol [] = do print("================================")
 printaSol (line:lines) =
     do 
-        printaSolLine line " "
+        print(printaSolLine line " ")
         printaSol lines
 
 --funções para conferencia da matrix MVar 
-printaLine :: [Bool] -> String -> IO ()
-printaLine [] acc = do print ( acc)
-printaLine (elem:line) acc = 
-    do 
-        printaLine line (acc ++ (show elem) ++ " ") 
+--usadas apenas para testes 
+printaLine :: [Bool] -> String -> String
+printaLine line acc = foldr (\s a-> " " ++ (show s) ++ a) acc line
 
 printaMatrix :: MatrixBool -> IO ()
 printaMatrix [] = do print("================================")
 printaMatrix (line:lines) =
     do 
-        printaLine line " "
+        print(printaLine line " ")
         printaMatrix lines

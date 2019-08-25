@@ -1,36 +1,24 @@
 module InputOutput where
 
-import Graphics.UI.Gtk
 import Data.Char
-
-stringToInt :: [Char] -> Int
-stringToInt str = stringToInt' str (length str - 1)
-    where 
-        stringToInt' :: [Char] -> Int -> Int
-        stringToInt' [] _ = 0
-        stringToInt' (c:str) tam = ((digitToInt c)*(10^tam)) + (stringToInt' str (tam-1))
 
 strToInt :: String -> Int
 strToInt str = read str :: Int
 
-splitLines :: Char -> String -> [String]
-splitLines _ [] = []
-splitLines char string = line : (splitLines char (drop ( (length line) + 1) string))
+splitStr :: Char -> String -> [String]
+splitStr _ [] = []
+splitStr char string = line : (splitStr char (drop ((length line) + 1) string))
     where 
         line = takeWhile (/=char) string
 
-splitNumbers :: Char -> String -> [Int]
-splitNumbers _ [] = []
-splitNumbers separator string =  
-    (strToInt number) : (splitNumbers separator (drop (length number + 1) string))
-    where 
-        number = takeWhile (/= separator) string
+strListToInt :: [String] -> [Int]
+strListToInt string = map strToInt string
 
-splitNumbersEx :: Char -> [String] -> [[Int]]
-splitNumbersEx separator strings = [splitNumbers separator string | string <- strings]
+splitNumbers :: Char -> [String] -> [[Int]]
+splitNumbers separator strings = map (\s -> strListToInt $ splitStr separator s) strings
 
 processeFile :: String -> [[Int]]
-processeFile content = splitNumbersEx ' ' $ splitLines '\n' content
+processeFile content = splitNumbers ' ' $ splitStr '\n' content
 
 
 readNProcessFile :: FilePath -> IO [[Int]]

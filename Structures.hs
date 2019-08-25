@@ -94,7 +94,7 @@ createFullTable level =
         let cols = length (solution !! 0)
         correctness <- createCorrectnees rows cols
         table <- createTable rows cols
-        image <- imageNewFromFile "FimDeJogo.png"
+        image <- (if rows > 9 then imageNewFromFile "LevelsFiles/FimDeJogoGrande.png" else imageNewFromFile "LevelsFiles/FimDeJogo.png")
         let field = createButtonField rows cols correctness solution table image
         let infoRows = createInfoListRow solution
         let infoCols = createInfoListCol solution
@@ -133,7 +133,7 @@ buttonFunction (RowColButton button i j) correctness solution table image =
             checkEndGame correctness (RowColButton button i j) solution
             let (Correctness matrix endgame) = correctness
             newBool <- readMVar endgame
-            if newBool then stopGame table image else return () )
+            if newBool then stopGame table image (length solution) else return () )
 
 transformTxt :: String -> Button -> IO String 
 transformTxt txt button = 
@@ -144,8 +144,10 @@ transformTxt txt button =
             then (do widgetModifyBg button StateNormal (Color 65535 65535 65535); return "X")
             else (do widgetModifyBg button StateNormal (Color 50000 50000 50000); return " ")
 
-stopGame :: Table -> Image ->  IO ()
-stopGame table image =
+stopGame :: Table -> Image -> Int -> IO ()
+stopGame table image len =
     do
-        addComp2Table table image 0 3 0 3
+        if len > 9 
+        then addComp2Table table image 0 7 0 8
+        else addComp2Table table image 0 3 0 4
         widgetShow image

@@ -19,7 +19,7 @@ library
   exposed-modules:     Structures, Defines, CheckFunctions, MainMenu, Main, InputOutput
   -- other-modules:    
   -- other-extensions:
-  build-depends:       base >=4.11 && <4.12, gtk >=0.15 && <0.16
+  build-depends:       base >=4.9 && <4.12, gtk >=0.14.7 && <0.16
   -- hs-source-dirs:
   default-language:    Haskell2010
 
@@ -27,6 +27,6 @@ executable Haskkross
   main-is:             Main.hs
   -- other-modules:    
   -- other-extensions:
-  build-depends:       base >=4.11 && <4.12, gtk >=0.15 && <0.16
+  build-depends:       base >=4.9 && <4.12, gtk >=0.14.7 && <0.16
   -- hs-source-dirs:
   default-language:    Haskell2010
