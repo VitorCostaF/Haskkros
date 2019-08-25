@@ -45,11 +45,11 @@ createAboutButton nbLvls table window =
     do
         aboutTable <- tableNew 10 1 True
         button <- buttonNewWithLabel ("About")
-        onClicked button (createAboutTable aboutTable window button)
+        onClicked button (createAboutTable aboutTable window)
         tableAttachDefaults table button 1 11 (nbLvls+4) (nbLvls+5)
 
-createAboutTable :: Table -> Window -> Button -> IO ()
-createAboutTable aboutTable window button =
+createAboutTable :: Table -> Window -> IO ()
+createAboutTable aboutTable window  =
     do
         labelLine1 <- labelNew (Just "Haskross")
         labelSetMarkup labelLine1 "<b><big><big><big><big>Haskross</big></big></big></big></b>"
@@ -81,8 +81,45 @@ createAboutWindow aboutTable =
 createTutorialButton :: Table -> Window -> IO ()
 createTutorialButton mmtable window =
     do
+        tutorialTable1 <- tableNew 1 1 True
         button <- buttonNewWithLabel ("Tutorial")
+        onClicked button (createTutorialTable tutorialTable1 window)
         tableAttachDefaults mmtable button 1 11 1 2
+createTutorialTable :: Table -> Window -> IO ()
+createTutorialTable tutorialTable window =
+    do
+        tutorialTable2 <- tableNew 20 20 True
+        button <- buttonNewWithLabel ("Next")
+        onClicked button (goToTutorial2 tutorialTable2 window )
+        tableAttachDefaults tutorialTable button 19 20 18 20
+
+        tutorial1 <- imageNewFromFile ("TutorialImages/tutorial1.png")
+        tableAttachDefaults tutorialTable tutorial1 1 19 1 19
+        widgetHideAll window
+        createTutorialWindow tutorialTable
+        widgetShowAll window
+goToTutorial2 :: Table -> Window -> IO ()
+goToTutorial2 table window=
+    do
+        mainQuit
+        tutorial1 <- imageNewFromFile ("TutorialImages/tutorial2.png")
+        tableAttachDefaults table tutorial1 1 19 1 19
+
+        widgetHideAll window
+        createTutorialWindow table
+        widgetShowAll window
+
+createTutorialWindow :: Table -> IO ()
+createTutorialWindow tutorialTable =
+    do
+        initGUI
+        window <- windowNew
+        widgetModifyBg window StateNormal (Color 60000 50000 60000)
+        setWindowProps ("Tutorial") window
+        containerAdd  window tutorialTable
+        onDestroy window mainQuit
+        widgetShowAll window
+        mainGUI
 
 createLevelButton :: Table -> Window -> LevelID -> IO ()
 createLevelButton mmtable window levelNb =
