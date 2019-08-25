@@ -73,7 +73,7 @@ setInfos2Table :: Table -> InfoRows -> InfoCols -> Int -> Int -> IO ()
 setInfos2Table table infoRows infoCols rowMax colMax =
     do
         setInfoRow2Table table infoRows rowMax colMax True
-        setInfoRow2Table table infoCols rowMax colMax False 
+        setInfoRow2Table table infoCols rowMax colMax False
 
 createCorrectnees :: Int -> Int -> IO Correctness
 createCorrectnees nRows nCols =
@@ -107,7 +107,7 @@ createInfoListRow :: [[Int]] -> [[IO Label]]
 createInfoListRow matrix = map labelList $ reverse $ [reverse $ createLabel z [0] (-1) | z <- (reverse matrix)]
 
 createInfoListCol :: [[Int]] -> [[IO Label]]
-createInfoListCol matrix = map labelList $ reverse [createLabel (map (!! n) (reverse matrix)) [0] (-1) | n <- [0..((length matrix)-1 )]]
+createInfoListCol matrix = map labelList [createLabel (map (!! n) (reverse matrix)) [0] (-1) | n <- [0..((length matrix)-1 )]]
 
 createLabel :: [Int] -> [Int] -> Int -> [Int]
 createLabel [] c _ = (init c)
@@ -135,9 +135,9 @@ buttonFunction (RowColButton button i j) correctness solution table image =
             newBool <- readMVar endgame
             if newBool then stopGame table image (length solution) else return () )
 
-transformTxt :: String -> Button -> IO String 
-transformTxt txt button = 
-    do 
+transformTxt :: String -> Button -> IO String
+transformTxt txt button =
+    do
         if txt == " "
         then (do widgetModifyBg button StateNormal (Color 0 0 0); return "  ")
         else if txt == "  "
@@ -147,7 +147,7 @@ transformTxt txt button =
 stopGame :: Table -> Image -> Int -> IO ()
 stopGame table image len =
     do
-        if len > 9 
+        if len > 9
         then addComp2Table table image 0 7 0 8
         else addComp2Table table image 0 3 0 4
         widgetShow image
