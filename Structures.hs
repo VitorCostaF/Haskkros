@@ -47,10 +47,6 @@ setField2TableRow table (part:field) i j = do
     setField2TableCol table part i j
     setField2TableRow table field (i+1) j
 
-setField2Table :: Table -> ButtonField -> Int -> Int -> IO ()
-setField2Table table field rows cols= setField2TableRow table field (halfInt rows) (halfInt cols)
-
-
 setRowCol :: Table -> [IO Label] -> Int -> Int -> Bool -> IO ()
 setRowCol _ [] _ _ _ = return ()
 setRowCol table (labIO:labels) row col isRow =
@@ -62,26 +58,22 @@ setRowCol table (labIO:labels) row col isRow =
                 newRow = row + (fromEnum (not isRow))
                 newCol = col + (fromEnum isRow)
 
-setInfoRow2Table :: Table -> InfoRows -> Int -> Int -> IO ()
-setInfoRow2Table _ [] _ _ = return ()
-setInfoRow2Table table (iRow:infoRows) row col =
-    do
-        setRowCol table iRow row (col-(length iRow)) True
-        setInfoRow2Table table infoRows (row + 1) col
 
---rever con setInfoCol2Table
-setInfoCol2Table :: Table -> InfoCols -> Int -> Int -> IO ()
-setInfoCol2Table _ [] _ _ = return ()
-setInfoCol2Table table (iCol:infoCols) row col =
+setInfoRow2Table :: Table -> InfoRows -> Int -> Int -> Bool -> IO ()
+setInfoRow2Table _ [] _ _ _ = return ()
+setInfoRow2Table table (iRow:infoRows) row col setRow =
     do
-        setRowCol table iCol (row-(length iCol)) col False
-        setInfoCol2Table table infoCols row (col + 1)
+        setRowCol table iRow newRow newCol setRow
+        setInfoRow2Table table infoRows (row + (fromEnum setRow)) (col + (fromEnum (not setRow))) setRow
+            where
+                newRow = if setRow then row else (row -(length iRow))
+                newCol = if setRow then (col -(length iRow)) else col
 
 setInfos2Table :: Table -> InfoRows -> InfoCols -> Int -> Int -> IO ()
 setInfos2Table table infoRows infoCols rowMax colMax =
     do
-        setInfoRow2Table table infoRows rowMax colMax
-        setInfoCol2Table table infoCols rowMax colMax
+        setInfoRow2Table table infoRows rowMax colMax True
+        setInfoRow2Table table infoCols rowMax colMax False 
 
 createCorrectnees :: Int -> Int -> IO Correctness
 createCorrectnees nRows nCols =
@@ -136,17 +128,21 @@ buttonFunction (RowColButton button i j) correctness solution table image =
         if bool then return ()
         else (do
             txt <- buttonGetLabel button
-            newTxt <-   if txt == " "
-                        then (do widgetModifyBg button StateNormal (Color 0 0 0); return "  ")
-                        else if txt == "  "
-                            then (do widgetModifyBg button StateNormal (Color 65535 65535 65535); return "X")
-                            else (do widgetModifyBg button StateNormal (Color 50000 50000 50000); return " ")
+            newTxt <- transformTxt txt button
             buttonSetLabel button newTxt
             checkEndGame correctness (RowColButton button i j) solution
             let (Correctness matrix endgame) = correctness
             newBool <- readMVar endgame
-            --print(bool)
             if newBool then stopGame table image else return () )
+
+transformTxt :: String -> Button -> IO String 
+transformTxt txt button = 
+    do 
+        if txt == " "
+        then (do widgetModifyBg button StateNormal (Color 0 0 0); return "  ")
+        else if txt == "  "
+            then (do widgetModifyBg button StateNormal (Color 65535 65535 65535); return "X")
+            else (do widgetModifyBg button StateNormal (Color 50000 50000 50000); return " ")
 
 stopGame :: Table -> Image ->  IO ()
 stopGame table image =

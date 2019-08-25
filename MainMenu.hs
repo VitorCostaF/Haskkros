@@ -4,7 +4,6 @@ import Graphics.UI.Gtk
 import Control.Monad
 import Structures
 import Defines
-type LevelID = String
 
 setWindowProps :: String -> Window -> IO ()
 setWindowProps title window =
@@ -25,7 +24,7 @@ createMainMenu = do
 
     setWindowProps "Main Menu" window
     mainMenuTable <- tableNew 14 12 True
-
+    widgetModifyBg window StateNormal (Color 40000 10000 50000)
     createAboutButton mainMenuTable window
     createTutorialButton mainMenuTable window
     tableAttachDefaults mainMenuTable labelTitle 1 12 0 1
@@ -37,7 +36,6 @@ createMainMenu = do
     widgetShowAll window
     mainGUI
 
-    --buttonTutorial <-
 createAboutButton :: Table -> Window -> IO ()
 createAboutButton table window =
     do
@@ -45,6 +43,7 @@ createAboutButton table window =
         button <- buttonNewWithLabel ("About")
         onClicked button (createAboutTable aboutTable window button)
         tableAttachDefaults table button 1 11 14 15
+
 createAboutTable :: Table -> Window -> Button -> IO ()
 createAboutTable aboutTable window button =
     do
@@ -68,6 +67,7 @@ createAboutWindow aboutTable =
     do
         initGUI
         window <- windowNew
+        widgetModifyBg window StateNormal (Color 60000 50000 60000)
         setWindowProps ("About") window
         containerAdd  window aboutTable
         onDestroy  window mainQuit
@@ -78,10 +78,8 @@ createTutorialButton :: Table -> Window -> IO ()
 createTutorialButton mmtable window =
     do
         button <- buttonNewWithLabel ("Tutorial")
-        --onClicked button (createTutorialTable mmtable window levelNb button)
         tableAttachDefaults mmtable button 1 11 1 2
---createTutorialTable :: Table -> Window -> Button -> IO ()
---createTutorialTable
+
 createLevelButton :: Table -> Window -> LevelID -> IO ()
 createLevelButton mmtable window levelNb =
     do
@@ -103,6 +101,7 @@ createLevelWindow levelNb lvtable =
     do
         initGUI
         window <- windowNew
+        widgetModifyBg window StateNormal (Color 60000 40000 60000)
         setWindowProps ("Level "++levelNb) window
         containerAdd window lvtable
         onDestroy window mainQuit

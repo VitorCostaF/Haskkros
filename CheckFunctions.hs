@@ -37,17 +37,12 @@ newState mvarMatrix i j button sol =
         let newMatrix = createNewMatrix matrix i 0 newLine
         aux <- swapMVar mvarMatrix newMatrix
         return ()
-        
-
 
 checkRow :: [Bool] -> Bool
-checkRow [] = True
-checkRow (elem:row) = elem && (checkRow row)
-
+checkRow row = foldr (&&) True row
 
 checkMatrix :: MatrixBool -> Bool
-checkMatrix [] = True
-checkMatrix (row:matrix) = (checkRow row) && (checkMatrix matrix)
+checkMatrix  matrix = foldr (\a b -> checkRow a && b) True matrix
 
 checkEndGame :: Correctness -> RowColButton -> Solution -> IO ()
 checkEndGame (Correctness mvarMatrix endGame) (RowColButton button i j) solution =
@@ -60,8 +55,7 @@ checkEndGame (Correctness mvarMatrix endGame) (RowColButton button i j) solution
         return ()
 
 
-
---funcoes para testes apenas
+        --funções para visualização da matriz de soluções
 printaSolLine :: [Int] -> String -> IO ()
 printaSolLine [] acc = do print ( acc)
 printaSolLine (elem:line) acc = 
@@ -75,7 +69,7 @@ printaSol (line:lines) =
         printaSolLine line " "
         printaSol lines
 
-
+--funções para conferencia da matrix MVar 
 printaLine :: [Bool] -> String -> IO ()
 printaLine [] acc = do print ( acc)
 printaLine (elem:line) acc = 

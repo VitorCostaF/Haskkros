@@ -1,19 +1,15 @@
 module Defines where
 
 import Graphics.UI.Gtk
-
-import Data.Char
 import Control.Concurrent
 import Control.Monad
---import System.IO
-
-
 
 type ButtonField = [[IO RowColButton]]
 type InfoRows = [[IO Label]]
 type InfoCols = [[IO Label]]
 type Solution = [[Int]]
 type MatrixBool = [[Bool]]
+type LevelID = String
 
 data RowColButton = RowColButton Button Int Int 
 data Correctness = Correctness (MVar MatrixBool) (MVar Bool)
