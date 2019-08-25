@@ -5,6 +5,10 @@ import Control.Monad
 import Structures
 import Defines
 
+--Numero de niveis totais
+nbLvls :: Int
+nbLvls = 10
+
 setWindowProps :: String -> Window -> IO ()
 setWindowProps title window =
     do
@@ -23,26 +27,26 @@ createMainMenu = do
 
 
     setWindowProps "Main Menu" window
-    mainMenuTable <- tableNew 14 12 True
+    mainMenuTable <- tableNew (nbLvls+4) 12 True
     widgetModifyBg window StateNormal (Color 40000 10000 50000)
-    createAboutButton mainMenuTable window
+    createAboutButton nbLvls mainMenuTable window
     createTutorialButton mainMenuTable window
-    tableAttachDefaults mainMenuTable labelTitle 1 12 0 1
+    tableAttachDefaults mainMenuTable labelTitle 0 12 0 1
     containerAdd window mainMenuTable
-    mapM (createLevelButton mainMenuTable window) $ map show [1..10]
+    mapM (createLevelButton mainMenuTable window) $ map show [1..(nbLvls)]
 
 
     onDestroy window mainQuit
     widgetShowAll window
     mainGUI
 
-createAboutButton :: Table -> Window -> IO ()
-createAboutButton table window =
+createAboutButton :: Int -> Table -> Window -> IO ()
+createAboutButton nbLvls table window =
     do
         aboutTable <- tableNew 10 1 True
         button <- buttonNewWithLabel ("About")
         onClicked button (createAboutTable aboutTable window button)
-        tableAttachDefaults table button 1 11 14 15
+        tableAttachDefaults table button 1 11 (nbLvls+4) (nbLvls+5)
 
 createAboutTable :: Table -> Window -> Button -> IO ()
 createAboutTable aboutTable window button =
@@ -85,9 +89,9 @@ createLevelButton mmtable window levelNb =
     do
         button <- buttonNewWithLabel ("Level " ++ levelNb)
         onClicked button (createLevelTable mmtable window levelNb button)
-        let positionY = ((read levelNb:: Int) + 2)
-        let positionY2 = ((read levelNb:: Int) + 3)
-        tableAttachDefaults mmtable button 1 11 positionY positionY2
+        let pos = ((read levelNb:: Int) + 2)
+        let pos2 = ((read levelNb:: Int) + 3)
+        tableAttachDefaults mmtable button 1 11 pos pos2
 
 createLevelTable :: Table -> Window -> LevelID -> Button -> IO()
 createLevelTable mainMenuTable window levelNb button = do
