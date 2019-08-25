@@ -112,13 +112,13 @@ createFullTable level =
 
 
 createInfoListRow :: [[Int]] -> [[IO Label]]
-createInfoListRow matrix = map labelList $ reverse $ [createLabel z [0] (-1) | z <- (reverse matrix)]
+createInfoListRow matrix = map labelList $ reverse $ [reverse $ createLabel z [0] (-1) | z <- (reverse matrix)]
 
 createInfoListCol :: [[Int]] -> [[IO Label]]
-createInfoListCol matrix = map labelList $ [createLabel (map (!! n) (reverse matrix)) [0] (-1) | n <- [0..((length matrix)-1 )]]
+createInfoListCol matrix = map labelList $ reverse [createLabel (map (!! n) (reverse matrix)) [0] (-1) | n <- [0..((length matrix)-1 )]]
 
 createLabel :: [Int] -> [Int] -> Int -> [Int]
-createLabel [] c _ = reverse (init c)
+createLabel [] c _ = (init c)
 createLabel (x:xs) (c:cs) y
   | x == 0    = createLabel xs (c:cs) (-1)
   | x == y    = createLabel xs ((c+1):cs) (x)
