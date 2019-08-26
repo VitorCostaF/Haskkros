@@ -89,25 +89,10 @@ createTutorialButton mmtable window =
 createTutorialTable :: Table -> Window -> IO ()
 createTutorialTable tutorialTable window =
     do
-        --tutorialTable2 <- tableNew 20 20 True
-        --button <- buttonNewWithLabel ("Next")
-        --onClicked button (goToTutorial2 tutorialTable2 window )
-        --tableAttachDefaults tutorialTable button 19 20 18 20
-
         tutorial1 <- imageNewFromFile ("TutorialImages/tutorial.png")
         tableAttachDefaults tutorialTable tutorial1 1 19 1 19
         widgetHideAll window
         createTutorialWindow tutorialTable
-        widgetShowAll window
-goToTutorial2 :: Table -> Window -> IO ()
-goToTutorial2 table window=
-    do
-        mainQuit
-        tutorial1 <- imageNewFromFile ("TutorialImages/tutorial2.png")
-        tableAttachDefaults table tutorial1 1 19 1 19
-
-        widgetHideAll window
-        createTutorialWindow table
         widgetShowAll window
 
 createTutorialWindow :: Table -> IO ()
